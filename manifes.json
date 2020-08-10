@@ -1,0 +1,85 @@
+{
+  "linkchecker": {
+    "executor": "node_executor",
+    "steps": [
+      "checkout",
+      {
+        "run": {
+          "name": "update-npm",
+          "command": "sudo npm install -g npm@latest"
+        }
+      },
+      {
+        "restore_cache": {
+          "keys": [
+            "deps-{{ checksum \"package.json\" }}"
+          ]
+        }
+      },
+      {
+        "run": {
+          "name": "Install dependencies",
+          "command": "npm install\n"
+        }
+      },
+      {
+        "run": {
+          "name": "Run markdown link checker",
+          "command": "npm run test:links\n"
+        }
+      },
+      {
+        "save_cache": {
+          "paths": [
+            "./node_modules"
+          ],
+          "key": "deps-{{ checksum \"package.json\" }}"
+        }
+      },
+      {
+        "store_artifacts": {
+          "path": "./linkchecker.out",
+          "destination": "linkchecker.out"
+        }
+      }
+    ]
+  },
+  "markdownlint": {
+    "executor": "ruby_executor",
+    "steps": [
+      "checkout",
+      {
+        "run": {
+          "name": "Install dependencies",
+          "command": "gem install mdl\n"
+        }
+      },
+      {
+        "run": {
+          "shell": "/bin/bash",
+          "name": "Run Markdownlint info checks",
+          "command": "mdl --ignore-front-matter --style ./CI/markdownlint/info_style.rb . | tee ./markdownlint_info.out\n"
+        }
+      },
+      {
+        "run": {
+          "name": "Run Markdownlint",
+          "command": "mdl --ignore-front-matter --style ./CI/markdownlint/style.rb . | tee ./markdownlint.out\n"
+        }
+      },
+      {
+        "store_artifacts": {
+          "path": "./markdownlint.out",
+          "destination": "./markdownlint.out"
+        }
+      },
+      {
+        "store_artifacts": {
+          "path": "./markdownlint_info.out",
+          "destination": "./markdownlint_info.out"
+        }
+      }
+    ]
+  }
+}
+
